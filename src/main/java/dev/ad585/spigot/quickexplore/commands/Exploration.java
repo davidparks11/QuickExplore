@@ -39,8 +39,12 @@ public class Exploration implements CommandExecutor {
                 p.sendMessage("Sorry! That location would've been dangerous. Try again!");
                 return false;
             }
+            if (preLoadChunck(targetLocation)) {
             p.teleport(targetLocation);
+                String message = "You've been sent to " + targetLocation.toString();
+                p.sendMessage(message);
             return true;
+            }
         } else {
             p.sendMessage("You do not have the permission to execute this command!");
         }
@@ -85,6 +89,10 @@ public class Exploration implements CommandExecutor {
             return scale * (max - min) + min;
         }
     }
+    private boolean preLoadChunck(Location location) {
+        return location.getWorld().loadChunk((int) location.getX(), (int) location.getY(), true);
+    }
+
     /**
      * 
      * @param location will check if this location is inside or outside the world border
