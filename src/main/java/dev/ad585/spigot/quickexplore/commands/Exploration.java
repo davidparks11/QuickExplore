@@ -8,12 +8,12 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.WorldBorder;
 
 public class Exploration implements CommandExecutor {
     // private App plugin;
     private final double MAX_DISTANCE = 20000;
     private final double MIN_DISTANCE = 800;
-    private final double WORLD_BORDER = 29999999;
 
     public Exploration(Main plugin) {
         // this.plugin = plugin;
@@ -35,7 +35,7 @@ public class Exploration implements CommandExecutor {
         // check permission
         if (p.hasPermission("explore.use")) {
             Location targetLocation = getNextRandLocation(p.getLocation());
-            if (isDangerous(targetLocation) || !inWorldBorder(targetLocation.getX(), targetLocation.getZ())) {
+            if (isFloorDangerous(targetLocation) || !inWorldBorder(targetLocation)) {
                 p.sendMessage("Sorry! That location would've been dangerous. Try again!");
                 return false;
             }
@@ -54,7 +54,7 @@ public class Exploration implements CommandExecutor {
         double nextZ = location.getZ() + getMinimumRandInRange(MIN_DISTANCE, MAX_DISTANCE);
         location.setX(nextX);
         location.setZ(nextZ);
-        double nextY = location.getWorld().getHighestBlockYAt(location);
+        double nextY = location.getWorld().getHighestBlockYAt(location) + 1;
         location.setY(nextY);
         return location;
     }
@@ -85,16 +85,28 @@ public class Exploration implements CommandExecutor {
             return scale * (max - min) + min;
         }
     }
-    //validate x and z for world border
-    private boolean isXZInBounds(double x, double z) {
-        return (x < WORLD_BORDER && x > -WORLD_BORDER
-        && z < WORLD_BORDER && z > -WORLD_BORDER);
+    /**
+     * 
+     * @param location will check if this location is inside or outside the world border
+     * @return true if inside, false if out
+     */
+    private boolean inWorldBorder(Location location) {
+        WorldBorder border = location.getWorld().getWorldBorder();
+        double borderRadius = border.getSize() / 2;
+        Location center = border.getCenter();
+        return  center.distanceSquared(location) <= (borderRadius * borderRadius);
     }
 
-    // checks if the location is a lava
-    private boolean isDangerous(Location location) {
-        if (location.getBlock().getType().equals(Material.LAVA)
-                || location.getBlock().getType().equals(Material.STATIONARY_LAVA)) {
+    /**
+     * 
+     * @param floor
+     * @return true if being on this block could hurt the player, false otherwise
+     */
+    private boolean isFloorDangerous(Location location) {
+        //must check block underneath player for lava
+        Location floor = location.clone().subtract(0,0,1);
+        if (floor.getBlock().getType().equals(Material.LAVA)
+                || floor.getBlock().getType().equals(Material.STATIONARY_LAVA)) {
             return true;
         }
         return false;
