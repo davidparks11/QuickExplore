@@ -11,11 +11,9 @@ import org.bukkit.Material;
 
 public class Exploration implements CommandExecutor {
     // private App plugin;
-    //private App plugin;
-    private final double MAX_RANGE = 20000;
-    private final double MIN_RANGE = 800;
+    private final double MAX_DISTANCE = 20000;
+    private final double MIN_DISTANCE = 800;
     private final double WORLD_BORDER = 29999999;
-
 
     public Exploration(Main plugin) {
         // this.plugin = plugin;
@@ -31,9 +29,9 @@ public class Exploration implements CommandExecutor {
             sender.sendMessage("Only players can execute this command!");
             return false;
         }
-    
-        Player p = (Player) sender;        
-        
+
+        Player p = (Player) sender;
+
         // check permission
         if (p.hasPermission("explore.use")) {
             Location targetLocation = getNextRandLocation(p.getLocation());
@@ -46,14 +44,14 @@ public class Exploration implements CommandExecutor {
         } else {
             p.sendMessage("You do not have the permission to execute this command!");
         }
-        
+
         return false;
     }
 
     // sets x and z to random location between min and max range
     private Location getNextRandLocation(Location location) {
-        double nextX = Math.floor((Math.random()*(MAX_RANGE-MIN_RANGE)+MIN_RANGE));
-        double nextZ = Math.floor((Math.random()*(MAX_RANGE-MIN_RANGE)+MIN_RANGE));
+        double nextX = location.getX() + getMinimumRandInRange(MIN_DISTANCE, MAX_DISTANCE);
+        double nextZ = location.getZ() + getMinimumRandInRange(MIN_DISTANCE, MAX_DISTANCE);
         location.setX(nextX);
         location.setZ(nextZ);
         double nextY = location.getWorld().getHighestBlockYAt(location);
@@ -61,6 +59,32 @@ public class Exploration implements CommandExecutor {
         return location;
     }
 
+    /**
+     * 
+     * @param min minimum distance from location
+     * @param max maximum distance from location
+     * @return value between min and max or -min and -max if give min=2 and max=5,
+     *         the possible values are: 2<x<5 and -2>x>-5 Odd Cases: min is less
+     *         then max: they will be switched min and max are equal: your minimum
+     *         will be zero
+     */
+    private double getMinimumRandInRange(double min, double max) {
+        // check odd cases
+        if (min == max) {
+            min = 0.0;
+        } else if (min > max) {
+            double temp = min;
+            min = max;
+            max = temp;
+        }
+
+        double scale = (Math.random() - 0.5) * 2;
+        if (scale < 0) {
+            return scale * (max - min) - min;
+        } else {
+            return scale * (max - min) + min;
+        }
+    }
     //validate x and z for world border
     private boolean isXZInBounds(double x, double z) {
         return (x < WORLD_BORDER && x > -WORLD_BORDER
@@ -71,8 +95,8 @@ public class Exploration implements CommandExecutor {
     private boolean isDangerous(Location location) {
         if (location.getBlock().getType().equals(Material.LAVA)
                 || location.getBlock().getType().equals(Material.STATIONARY_LAVA)) {
-                return true;
-            }
+            return true;
+        }
         return false;
     }
 }
