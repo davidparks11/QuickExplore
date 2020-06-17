@@ -40,10 +40,10 @@ public class Exploration implements CommandExecutor {
                 return false;
             }
             if (preLoadChunck(targetLocation)) {
-            p.teleport(targetLocation);
+                p.teleport(targetLocation);
                 String message = "You've been sent to " + targetLocation.toString();
                 p.sendMessage(message);
-            return true;
+                return true;
             }
         } else {
             p.sendMessage("You do not have the permission to execute this command!");
@@ -60,6 +60,7 @@ public class Exploration implements CommandExecutor {
         location.setZ(nextZ);
         double nextY = location.getWorld().getHighestBlockYAt(location) + 1;
         location.setY(nextY);
+        tidyLocation(location);
         return location;
     }
 
@@ -89,6 +90,14 @@ public class Exploration implements CommandExecutor {
             return scale * (max - min) + min;
         }
     }
+
+    private void tidyLocation(Location location) {
+        double centerX = Math.floor(location.getX())+0.5;
+        double centerZ = Math.floor(location.getZ())+0.5;
+        location.setX(centerX);
+        location.setZ(centerZ);
+    }
+
     private boolean preLoadChunck(Location location) {
         return location.getWorld().loadChunk((int) location.getX(), (int) location.getY(), true);
     }
