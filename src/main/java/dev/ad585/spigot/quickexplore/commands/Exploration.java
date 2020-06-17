@@ -10,6 +10,7 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 
 public class Exploration implements CommandExecutor {
+    // private App plugin;
     //private App plugin;
     private final double MAX_RANGE = 20000;
     private final double MIN_RANGE = 800;
@@ -17,15 +18,15 @@ public class Exploration implements CommandExecutor {
 
 
     public Exploration(Main plugin) {
-        //this.plugin = plugin;
+        // this.plugin = plugin;
         plugin.getCommand("explore").setExecutor(this);
     }
 
-    //command method
+    // command method
     @Override
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
 
-        //checks that caller is a player
+        // checks that caller is a player
         if (!(sender instanceof Player)) {
             sender.sendMessage("Only players can execute this command!");
             return false;
@@ -33,11 +34,10 @@ public class Exploration implements CommandExecutor {
     
         Player p = (Player) sender;        
         
-        //check permission
-        if(p.hasPermission("explore.use")) {
+        // check permission
+        if (p.hasPermission("explore.use")) {
             Location targetLocation = getNextRandLocation(p.getLocation());
-            if (isDangerous(targetLocation) 
-            || !isXZInBounds(targetLocation.getX(), targetLocation.getZ())) {
+            if (isDangerous(targetLocation) || !inWorldBorder(targetLocation.getX(), targetLocation.getZ())) {
                 p.sendMessage("Sorry! That location would've been dangerous. Try again!");
                 return false;
             }
@@ -50,7 +50,7 @@ public class Exploration implements CommandExecutor {
         return false;
     }
 
-    //sets x and z to random location between min and max range
+    // sets x and z to random location between min and max range
     private Location getNextRandLocation(Location location) {
         double nextX = Math.floor((Math.random()*(MAX_RANGE-MIN_RANGE)+MIN_RANGE));
         double nextZ = Math.floor((Math.random()*(MAX_RANGE-MIN_RANGE)+MIN_RANGE));
@@ -67,10 +67,10 @@ public class Exploration implements CommandExecutor {
         && z < WORLD_BORDER && z > -WORLD_BORDER);
     }
 
-    //checks if the location is a lava
+    // checks if the location is a lava
     private boolean isDangerous(Location location) {
-        if (location.getBlock().getType().equals(Material.LAVA) || 
-            location.getBlock().getType().equals(Material.STATIONARY_LAVA)) {
+        if (location.getBlock().getType().equals(Material.LAVA)
+                || location.getBlock().getType().equals(Material.STATIONARY_LAVA)) {
                 return true;
             }
         return false;
