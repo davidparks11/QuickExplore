@@ -7,15 +7,16 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.Location;
 
 public class Exploration implements CommandExecutor {
-    // private App plugin;
+    private Main plugin;
     private final double MAX_DISTANCE = 20000;
     private final double MIN_DISTANCE = 800;
 
     public Exploration(Main plugin) {
-        // this.plugin = plugin;
+        this.plugin = plugin;
         plugin.getCommand("explore").setExecutor(this);
     }
 
@@ -33,6 +34,7 @@ public class Exploration implements CommandExecutor {
         
         // check permission
         if (p.hasPermission("explore.use")) {
+            Location sourceLocation = p.getLocation();
             Location targetLocation = LocationUtil.getNextRandLocation(p.getLocation(), MIN_DISTANCE, MAX_DISTANCE);
             if (LocationUtil.isFloorDangerous(targetLocation) || !LocationUtil.inWorldBorder(targetLocation)) {
                 p.sendMessage("Sorry! That location would've been dangerous. Try again!");
@@ -42,6 +44,14 @@ public class Exploration implements CommandExecutor {
                 p.teleport(targetLocation);
                 String message = "You've been sent to " + targetLocation.toString();
                 p.sendMessage(message);
+
+                BukkitTask returnTimer = p.getServer().getScheduler().runTaskAsynchronously(plugin, new Runnable() {
+                    public void run() {
+                        p.teleport(sourceLocation);
+                    }
+                });
+                
+                
                 return true;
             }
         } else {

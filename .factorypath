@@ -8,6 +8,6 @@
     <factorypathentry kind="VARJAR" id="M2_REPO/javax/persistence/persistence-api/1.0/persistence-api-1.0.jar" enabled="true" runInBatchMode="false"/>
     <factorypathentry kind="VARJAR" id="M2_REPO/org/yaml/snakeyaml/1.15/snakeyaml-1.15.jar" enabled="true" runInBatchMode="false"/>
     <factorypathentry kind="VARJAR" id="M2_REPO/net/md-5/bungeecord-chat/1.9-SNAPSHOT/bungeecord-chat-1.9-SNAPSHOT.jar" enabled="true" runInBatchMode="false"/>
-    <factorypathentry kind="VARJAR" id="M2_REPO/org/spigotmc/plugin-annotations/1.1.0-SNAPSHOT/plugin-annotations-1.1.0-SNAPSHOT.jar" enabled="true" runInBatchMode="false"/>
+    <factorypathentry kind="VARJAR" id="M2_REPO/org/spigotmc/plugin-annotations/1.2.0-SNAPSHOT/plugin-annotations-1.2.0-SNAPSHOT.jar" enabled="true" runInBatchMode="false"/>
     <factorypathentry kind="VARJAR" id="M2_REPO/org/bukkit/bukkit/1.12.2-R0.1-SNAPSHOT/bukkit-1.12.2-R0.1-SNAPSHOT.jar" enabled="true" runInBatchMode="false"/>
 </factorypath>

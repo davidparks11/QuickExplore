@@ -1,5 +1,5 @@
 name: QuickExplore
-version: "0.1"
+version: "0.2.0"
 api: ["1.15"]
 main: dev.ad585.spigot.quickexplore.Main
 author: ad585
