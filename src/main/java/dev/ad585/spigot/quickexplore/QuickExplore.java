@@ -2,17 +2,15 @@ package dev.ad585.spigot.quickexplore;
 
 import org.bukkit.plugin.java.JavaPlugin;
 import java.util.logging.Logger;
+import dev.ad585.spigot.quickexplore.commands.QuickExploreCommandExecutor;
 
-import dev.ad585.spigot.quickexplore.commands.Exploration;
+public class QuickExplore extends JavaPlugin {
 
-
-public class Main extends JavaPlugin {
-    
     public final Logger logger = Logger.getLogger("Minecraft");
 
     @Override
     public void onEnable() {
-        new Exploration(this);
+        new QuickExploreCommandExecutor(this);
         this.logger.info("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
         this.logger.info("Quick Explore version enabled!");
         this.logger.info("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");

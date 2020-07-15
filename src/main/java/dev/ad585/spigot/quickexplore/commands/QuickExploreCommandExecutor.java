@@ -1,6 +1,6 @@
 package dev.ad585.spigot.quickexplore.commands;
 
-import dev.ad585.spigot.quickexplore.Main;
+import dev.ad585.spigot.quickexplore.QuickExplore;
 import dev.ad585.spigot.quickexplore.runnables.Quest;
 import dev.ad585.spigot.quickexplore.util.LocationUtil;
 import net.md_5.bungee.api.ChatColor;
@@ -12,9 +12,9 @@ import org.bukkit.Location;
 import java.util.HashMap;
 import java.util.UUID;
 
-public class Exploration implements CommandExecutor {
+public class QuickExploreCommandExecutor implements CommandExecutor {
 
-    private Main plugin;
+    private QuickExplore plugin;
     private final double MAX_DISTANCE = 20000;
     private final double MIN_DISTANCE = 800;
     private static final int TicksPerSecond = 20;
@@ -23,7 +23,7 @@ public class Exploration implements CommandExecutor {
     private int taskId = 0;
     private Quest quest;
 
-    public Exploration(Main plugin) {
+    public QuickExploreCommandExecutor(QuickExplore plugin) {
         this.plugin = plugin;
         plugin.getCommand("explore").setExecutor(this);
         quest = new Quest(plugin, playerLocations, countDowns);
@@ -40,6 +40,7 @@ public class Exploration implements CommandExecutor {
             return false;
         }
         Player p;
+        // TODO: Remove try catch
         try {
             p = (Player) sender;
         } catch (ClassCastException e) {

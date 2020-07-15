@@ -1,10 +1,10 @@
 name: QuickExplore
-version: "0.2.0"
-api: ["1.15"]
-main: dev.ad585.spigot.quickexplore.Main
+version: '0.0.1'
+api: ['1.15']
+main: dev.ad585.spigot.quickexplore.QuickExplore
 author: ad585
 description: Allows players to teleport to random far away locations to explore
 commands:
-  explore:
-      aliases: []
-      description: Teleports you far away (for a price) in hopes that you find riches
+    explore:
+        aliases: []
+        description: Teleports you far away (for a price) in hopes that you find riches
