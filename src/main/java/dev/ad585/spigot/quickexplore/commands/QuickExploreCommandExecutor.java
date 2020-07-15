@@ -39,14 +39,7 @@ public class QuickExploreCommandExecutor implements CommandExecutor {
             sender.sendMessage("Only players can execute this command!");
             return false;
         }
-        Player p;
-        // TODO: Remove try catch
-        try {
-            p = (Player) sender;
-        } catch (ClassCastException e) {
-            sender.sendMessage(ChatColor.RED + "Failed Command. Report to Admin");
-            return false;
-        }
+        Player p = (Player) sender;
 
         // check permission
         if (!p.hasPermission("explore.use")) {
