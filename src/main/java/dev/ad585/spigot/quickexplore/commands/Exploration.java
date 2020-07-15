@@ -18,12 +18,16 @@ public class Exploration implements CommandExecutor {
     private final double MAX_DISTANCE = 20000;
     private final double MIN_DISTANCE = 800;
     private static final int TicksPerSecond = 20;
-    // private final long loadChunkDelay = 3;
     private HashMap<UUID, Location> playerLocations = new HashMap<UUID, Location>();
+    private HashMap<UUID, Long> countDowns = new HashMap<UUID, Long>();
+    private int taskId = 0;
+    private Quest quest;
 
     public Exploration(Main plugin) {
         this.plugin = plugin;
         plugin.getCommand("explore").setExecutor(this);
+        quest = new Quest(plugin, playerLocations, countDowns);
+
     }
 
     // command method
@@ -45,15 +49,17 @@ public class Exploration implements CommandExecutor {
 
         // check permission
         if (!p.hasPermission("explore.use")) {
-            p.sendMessage("You do not have the permission to execute this command!");
+            p.sendMessage("You d o not have the permission to execute this command!");
             return false;
         }
 
-        if (playerLocations.containsKey(p.getUniqueId())) {
+        // cancel command if player is currently exploring
+        if (countDowns.containsKey(p.getUniqueId())) {
             p.sendMessage(
                     ChatColor.RED + "You are already exploring! Complete the current task or type \"/explore quit\"");
             return false;
         }
+        countDowns.put(p.getUniqueId(), System.currentTimeMillis());
         playerLocations.put(p.getUniqueId(), p.getLocation());
 
         // get new location and check it's safety
@@ -66,13 +72,19 @@ public class Exploration implements CommandExecutor {
         // preload and teleport
         if (!LocationUtil.preLoadChunck(targetLocation)) {
             p.sendMessage("Couldn't preload location, try again!");
+            countDowns.remove(p.getUniqueId());
+            playerLocations.remove(p.getUniqueId());
             return false;
         }
-        p.teleport(targetLocation);
 
-        Quest q = new Quest(plugin, p, playerLocations);
-        // run timer as new async task
-        p.getServer().getScheduler().runTaskAsynchronously(plugin, q);
+        p.teleport(targetLocation);
+        if (!p.getServer().getScheduler().isCurrentlyRunning(taskId)
+                && !p.getServer().getScheduler().isQueued(taskId)) {
+            taskId = p.getServer().getScheduler().scheduleSyncRepeatingTask(plugin, quest, 10 * TicksPerSecond,
+                    10 * TicksPerSecond);
+            quest.setTaskId(taskId);
+        }
+
         return true;
     }
 }
