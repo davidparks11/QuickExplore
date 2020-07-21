@@ -3,6 +3,7 @@ package dev.ad585.spigot.quickexplore.commands;
 import dev.ad585.spigot.quickexplore.QuickExplore;
 import dev.ad585.spigot.quickexplore.runnables.Quest;
 import dev.ad585.spigot.quickexplore.util.LocationUtil;
+import dev.ad585.spigot.quickexplore.Explorer;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.Command;
@@ -18,16 +19,15 @@ public class QuickExploreCommandExecutor implements CommandExecutor {
     private final double MAX_DISTANCE = 20000;
     private final double MIN_DISTANCE = 800;
     private static final int TicksPerSecond = 20;
-    private HashMap<UUID, Location> playerLocations = new HashMap<UUID, Location>();
-    private HashMap<UUID, Long> countDowns = new HashMap<UUID, Long>();
+    private HashMap<UUID, Explorer> explorers;
     private int taskId = 0;
     private Quest quest;
 
-    public QuickExploreCommandExecutor(QuickExplore plugin) {
+    public QuickExploreCommandExecutor(QuickExplore plugin, HashMap<UUID, Explorer> explorers) {
         this.plugin = plugin;
         plugin.getCommand("explore").setExecutor(this);
-        quest = new Quest(plugin, playerLocations, countDowns);
-
+        this.explorers = explorers;
+        quest = new Quest(plugin, explorers);
     }
 
     // command method
@@ -43,18 +43,17 @@ public class QuickExploreCommandExecutor implements CommandExecutor {
 
         // check permission
         if (!p.hasPermission("explore.use")) {
-            p.sendMessage("You d o not have the permission to execute this command!");
+            p.sendMessage("You do not have the permission to execute this command!");
             return false;
         }
 
         // cancel command if player is currently exploring
-        if (countDowns.containsKey(p.getUniqueId())) {
+        if (explorers.containsKey(p.getUniqueId())) {
             p.sendMessage(
                     ChatColor.RED + "You are already exploring! Complete the current task or type \"/explore quit\"");
             return false;
         }
-        countDowns.put(p.getUniqueId(), System.currentTimeMillis());
-        playerLocations.put(p.getUniqueId(), p.getLocation());
+        explorers.put(p.getUniqueId(), new Explorer(p));
 
         // get new location and check it's safety
         Location targetLocation = LocationUtil.getNextRandLocation(p.getLocation(), MIN_DISTANCE, MAX_DISTANCE);
@@ -66,8 +65,7 @@ public class QuickExploreCommandExecutor implements CommandExecutor {
         // preload and teleport
         if (!LocationUtil.preLoadChunck(targetLocation)) {
             p.sendMessage("Couldn't preload location, try again!");
-            countDowns.remove(p.getUniqueId());
-            playerLocations.remove(p.getUniqueId());
+            explorers.remove(p.getUniqueId());
             return false;
         }
 

@@ -1,36 +1,31 @@
 package dev.ad585.spigot.quickexplore.runnables;
 
 import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.Location;
-import java.util.UUID;
+
 import java.util.HashMap;
+import java.util.UUID;
 import java.util.Iterator;
+import dev.ad585.spigot.quickexplore.Explorer;
 
 public class Quest implements Runnable {
 
-    private final int taskTime = 20;
     private final JavaPlugin plugin;
     private int taskId = -1;
-    private HashMap<UUID, Location> playerLocations;
-    private HashMap<UUID, Long> countDowns;
+    private HashMap<UUID, Explorer> idExplorerMap;
 
-    /**
-     * 
-     * @param plugin
-     * @param pL     hashmap of players and locations to teleport them back
-     * @param cD     hashmap of players and times they called the command to time
-     *               them
-     */
-    public Quest(JavaPlugin plugin, HashMap<UUID, Location> pL, HashMap<UUID, Long> cD) {
+    public Quest(JavaPlugin plugin, HashMap<UUID, Explorer> idExplorerMap) {
         this.plugin = plugin;
-        this.playerLocations = pL;
-        this.countDowns = cD;
+        this.idExplorerMap = idExplorerMap;
     }
 
+    /**
+     * If explorers exist, then the task self cancels otherwise, checks for
+     * explorers out of time, then teleports them back to call location
+     */
     @Override
     public void run() {
         // self cancels task if no player remain in countdown map
-        if (countDowns.size() < 1) {
+        if (idExplorerMap.size() < 1) {
             if (!cancelSelf()) {
                 plugin.getServer().getLogger().severe(
                         "Couldn't cancel QuickExplore task, but schedule anyways. Try reloading the plugin, or restarting the server.");
@@ -38,17 +33,19 @@ public class Quest implements Runnable {
                 taskId = -1;
             }
         } else {
-            long currentTime = System.currentTimeMillis();
-            Iterator<HashMap.Entry<UUID, Long>> cdIterator = countDowns.entrySet().iterator();
-            while (cdIterator.hasNext()) {
-                HashMap.Entry<UUID, Long> player = cdIterator.next();
-                if (player.getValue() / 1000 + taskTime < currentTime / 1000) {
-                    plugin.getServer().getPlayer(player.getKey())
-                            .sendMessage("Sorry! You've run out of time. Going back!");
-                    // only remove from maps if teleport if successful
-                    if (plugin.getServer().getPlayer(player.getKey()).teleport(playerLocations.get(player.getKey()))) {
-                        playerLocations.keySet().remove(player.getKey());
-                        cdIterator.remove();
+            Iterator<HashMap.Entry<UUID, Explorer>> explorerIterator = idExplorerMap.entrySet().iterator();
+            while (explorerIterator.hasNext()) {
+                Explorer player = explorerIterator.next().getValue();
+                if (player.isOutOfTime() || player.isTaskCompleted()) {
+                    // on successful teleport
+                    if (player.sendHome()) {
+                        if (player.isOutOfTime()) {
+                            player.sendMessage("Sorry! You've run out of time. Going back!");
+                        } else {
+                            player.sendMessage("You did it! Take this reward!");
+                            player.rewardPlayer();
+                        }
+                        explorerIterator.remove();
                     }
                 }
             }
