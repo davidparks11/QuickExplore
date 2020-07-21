@@ -53,7 +53,16 @@ public class QuickExploreCommandExecutor implements CommandExecutor {
                     ChatColor.RED + "You are already exploring! Complete the current task or type \"/explore quit\"");
             return false;
         }
-        explorers.put(p.getUniqueId(), new Explorer(p));
+
+        // collectPayment
+        Explorer e = new Explorer(p);
+        if (e.collectPayment()) {
+            explorers.put(p.getUniqueId(), new Explorer(p));
+        } else {
+            e.sendMessage("QuickExplore failed! You must pay " + e.getFeeAmount() + " " + e.getFeeCurrency()
+                    + " to go on a quest!");
+            return false;
+        }
 
         // get new location and check it's safety
         Location targetLocation = LocationUtil.getNextRandLocation(p.getLocation(), MIN_DISTANCE, MAX_DISTANCE);

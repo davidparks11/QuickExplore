@@ -18,6 +18,9 @@ public class Explorer {
     private Location callLocation;
     private int timeLimit;
     private int rewardAmount;
+    private int feeAmount;
+    private Material rewardCurrency;
+    private Material feeCurrency;
     private boolean taskCompleted;
 
     /**
@@ -31,6 +34,9 @@ public class Explorer {
         callLocation = player.getLocation().clone();
         timeLimit = 30;
         rewardAmount = 4;
+        feeAmount = 1;
+        rewardCurrency = Material.DIAMOND;
+        feeCurrency = Material.DIAMOND;
         taskCompleted = false;
     }
 
@@ -74,11 +80,17 @@ public class Explorer {
      * gives player diamonds of p.rewardAmount
      */
     public void rewardPlayer() {
-        ItemStack reward = new ItemStack(Material.DIAMOND, rewardAmount);
+        ItemStack reward = new ItemStack(rewardCurrency, rewardAmount);
         HashMap<Integer, ItemStack> failedItems = player.getInventory().addItem(reward);
         if (!failedItems.isEmpty()) {
             player.getWorld().dropItemNaturally(player.getLocation(), reward);
         }
+    }
+
+    public boolean collectPayment() {
+        ItemStack fee = new ItemStack(feeCurrency, feeAmount);
+        HashMap<Integer, ItemStack> failedItems = player.getInventory().removeItem(fee);
+        return failedItems.isEmpty();
     }
 
     public void taskComplete() {
@@ -87,6 +99,14 @@ public class Explorer {
 
     public boolean isTaskCompleted() {
         return taskCompleted;
+    }
+
+    public int getFeeAmount() {
+        return feeAmount;
+    }
+
+    public String getFeeCurrency() {
+        return feeCurrency.toString();
     }
 
 }
