@@ -7,13 +7,13 @@ import java.util.UUID;
 import java.util.Iterator;
 import dev.ad585.spigot.quickexplore.Explorer;
 
-public class Quest implements Runnable {
+public class ExplorerStatusChecker implements Runnable {
 
     private final JavaPlugin plugin;
     private int taskId = -1;
     private HashMap<UUID, Explorer> idExplorerMap;
 
-    public Quest(JavaPlugin plugin, HashMap<UUID, Explorer> idExplorerMap) {
+    public ExplorerStatusChecker(JavaPlugin plugin, HashMap<UUID, Explorer> idExplorerMap) {
         this.plugin = plugin;
         this.idExplorerMap = idExplorerMap;
     }
@@ -39,11 +39,11 @@ public class Quest implements Runnable {
                 if (player.isOutOfTime() || player.isTaskCompleted()) {
                     // on successful teleport
                     if (player.sendHome()) {
-                        if (player.isOutOfTime()) {
-                            player.sendMessage("Sorry! You've run out of time. Going back!");
-                        } else {
+                        if (player.isTaskCompleted()) {
                             player.sendMessage("You did it! Take this reward!");
                             player.rewardPlayer();
+                        } else {
+                            player.sendMessage("Sorry! You've run out of time. Going back!");
                         }
                         explorerIterator.remove();
                     }

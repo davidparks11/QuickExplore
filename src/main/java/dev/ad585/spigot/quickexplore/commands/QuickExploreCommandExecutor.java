@@ -1,7 +1,7 @@
 package dev.ad585.spigot.quickexplore.commands;
 
 import dev.ad585.spigot.quickexplore.QuickExplore;
-import dev.ad585.spigot.quickexplore.runnables.Quest;
+import dev.ad585.spigot.quickexplore.runnables.ExplorerStatusChecker;
 import dev.ad585.spigot.quickexplore.util.LocationUtil;
 import dev.ad585.spigot.quickexplore.Explorer;
 import net.md_5.bungee.api.ChatColor;
@@ -21,13 +21,13 @@ public class QuickExploreCommandExecutor implements CommandExecutor {
     private static final int TICKS_PER_SECOND = 20;
     private HashMap<UUID, Explorer> explorers;
     private int taskId = 0;
-    private Quest quest;
+    private ExplorerStatusChecker statusChecker;
 
     public QuickExploreCommandExecutor(QuickExplore plugin, HashMap<UUID, Explorer> explorers) {
         this.plugin = plugin;
         plugin.getCommand("explore").setExecutor(this);
         this.explorers = explorers;
-        quest = new Quest(plugin, explorers);
+        statusChecker = new ExplorerStatusChecker(plugin, explorers);
     }
 
     // command method
@@ -82,9 +82,9 @@ public class QuickExploreCommandExecutor implements CommandExecutor {
 
         if (!p.getServer().getScheduler().isCurrentlyRunning(taskId)
                 && !p.getServer().getScheduler().isQueued(taskId)) {
-            taskId = p.getServer().getScheduler().scheduleSyncRepeatingTask(plugin, quest, 10 * TICKS_PER_SECOND,
-                    10 * TICKS_PER_SECOND);
-            quest.setTaskId(taskId);
+            taskId = p.getServer().getScheduler().scheduleSyncRepeatingTask(plugin, statusChecker,
+                    10 * TICKS_PER_SECOND, 10 * TICKS_PER_SECOND);
+            statusChecker.setTaskId(taskId);
         }
 
         return true;
