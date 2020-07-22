@@ -80,10 +80,18 @@ public class Explorer {
      * gives player diamonds of p.rewardAmount
      */
     public void rewardPlayer() {
-        ItemStack reward = new ItemStack(rewardCurrency, rewardAmount);
-        HashMap<Integer, ItemStack> failedItems = player.getInventory().addItem(reward);
+        giveExplorerItems(rewardCurrency, rewardAmount);
+    }
+
+    public void refund() {
+        giveExplorerItems(feeCurrency, feeAmount);
+    }
+
+    private void giveExplorerItems(Material m, int amount) {
+        ItemStack itemStack = new ItemStack(m, amount);
+        HashMap<Integer, ItemStack> failedItems = player.getInventory().addItem(itemStack);
         if (!failedItems.isEmpty()) {
-            player.getWorld().dropItemNaturally(player.getLocation(), reward);
+            player.getWorld().dropItemNaturally(player.getLocation(), itemStack);
         }
     }
 
@@ -108,5 +116,4 @@ public class Explorer {
     public String getFeeCurrency() {
         return feeCurrency.toString();
     }
-
 }

@@ -18,7 +18,7 @@ public class QuickExploreCommandExecutor implements CommandExecutor {
     private QuickExplore plugin;
     private final double MAX_DISTANCE = 20000;
     private final double MIN_DISTANCE = 800;
-    private static final int TicksPerSecond = 20;
+    private static final int TICKS_PER_SECOND = 20;
     private HashMap<UUID, Explorer> explorers;
     private int taskId = 0;
     private Quest quest;
@@ -56,9 +56,7 @@ public class QuickExploreCommandExecutor implements CommandExecutor {
 
         // collectPayment
         Explorer e = new Explorer(p);
-        if (e.collectPayment()) {
-            explorers.put(p.getUniqueId(), new Explorer(p));
-        } else {
+        if (!e.collectPayment()) {
             e.sendMessage("QuickExplore failed! You must pay " + e.getFeeAmount() + " " + e.getFeeCurrency()
                     + " to go on a quest!");
             return false;
@@ -67,22 +65,25 @@ public class QuickExploreCommandExecutor implements CommandExecutor {
         // get new location and check it's safety
         Location targetLocation = LocationUtil.getNextRandLocation(p.getLocation(), MIN_DISTANCE, MAX_DISTANCE);
         if (LocationUtil.isFloorDangerous(targetLocation) || !LocationUtil.inWorldBorder(targetLocation)) {
-            p.sendMessage("Sorry! That location would've been dangerous. Try again!");
+            e.sendMessage("Sorry! That location would've been dangerous. Try again!");
             return false;
         }
 
         // preload and teleport
         if (!LocationUtil.preLoadChunck(targetLocation)) {
-            p.sendMessage("Couldn't preload location, try again!");
-            explorers.remove(p.getUniqueId());
+            e.sendMessage("Couldn't preload location, try again!");
             return false;
         }
 
-        p.teleport(targetLocation);
+        if (!p.teleport(targetLocation)) {
+            return false;
+        }
+        explorers.put(e.getUniqueId(), e);
+
         if (!p.getServer().getScheduler().isCurrentlyRunning(taskId)
                 && !p.getServer().getScheduler().isQueued(taskId)) {
-            taskId = p.getServer().getScheduler().scheduleSyncRepeatingTask(plugin, quest, 10 * TicksPerSecond,
-                    10 * TicksPerSecond);
+            taskId = p.getServer().getScheduler().scheduleSyncRepeatingTask(plugin, quest, 10 * TICKS_PER_SECOND,
+                    10 * TICKS_PER_SECOND);
             quest.setTaskId(taskId);
         }
 

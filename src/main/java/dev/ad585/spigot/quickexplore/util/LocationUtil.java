@@ -93,7 +93,7 @@ public final class LocationUtil {
         // must check block underneath player for lava
         Block block = location.getWorld().getBlockAt((int) location.getX(), (int) location.getY() - 1,
                 (int) location.getZ());
-        if (block.getType().equals(Material.LAVA) || block.getType().equals(Material.STATIONARY_LAVA)) {
+        if (block.getType() == Material.LAVA || block.getType() == Material.FIRE) {
             return true;
         }
         return false;

@@ -11,12 +11,13 @@ import dev.ad585.spigot.quickexplore.listeners.EntityDeathListener;
 public class QuickExplore extends JavaPlugin {
 
     public final Logger logger = Logger.getLogger("Minecraft");
+    private HashMap<UUID, Explorer> idExplorerMap;
 
     @Override
     public void onEnable() {
-        HashMap<UUID, Explorer> explorers = new HashMap<UUID, Explorer>();
-        new QuickExploreCommandExecutor(this, explorers);
-        getServer().getPluginManager().registerEvents(new EntityDeathListener(explorers), this);
+        idExplorerMap = new HashMap<UUID, Explorer>();
+        new QuickExploreCommandExecutor(this, idExplorerMap);
+        getServer().getPluginManager().registerEvents(new EntityDeathListener(idExplorerMap), this);
         this.logger.info("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
         this.logger.info("Quick Explore version enabled!");
         this.logger.info("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
@@ -24,6 +25,10 @@ public class QuickExplore extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        idExplorerMap.forEach((id, explorer) -> {
+            explorer.refund();
+            explorer.sendHome();
+        });
         this.logger.info("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
         this.logger.info("Quick Explore version disabled!");
         this.logger.info("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
