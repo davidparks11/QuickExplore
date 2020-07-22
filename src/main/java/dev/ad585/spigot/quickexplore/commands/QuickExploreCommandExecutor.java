@@ -15,10 +15,11 @@ import java.util.UUID;
 
 public class QuickExploreCommandExecutor implements CommandExecutor {
 
-    private QuickExplore plugin;
     private final double MAX_DISTANCE = 20000;
     private final double MIN_DISTANCE = 800;
     private static final int TICKS_PER_SECOND = 20;
+
+    private QuickExplore plugin;
     private HashMap<UUID, Explorer> explorers;
     private int taskId = 0;
     private ExplorerStatusChecker statusChecker;
@@ -30,7 +31,6 @@ public class QuickExploreCommandExecutor implements CommandExecutor {
         statusChecker = new ExplorerStatusChecker(plugin, explorers);
     }
 
-    // command method
     @Override
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
 
@@ -49,9 +49,27 @@ public class QuickExploreCommandExecutor implements CommandExecutor {
 
         // cancel command if player is currently exploring
         if (explorers.containsKey(p.getUniqueId())) {
-            p.sendMessage(
-                    ChatColor.RED + "You are already exploring! Complete the current task or type \"/explore quit\"");
-            return false;
+            if (args.length == 1) {
+                Explorer caller = explorers.get(p.getUniqueId());
+                if (args[0].equals("quit")) {
+                    if (caller.sendHome()) {
+                        explorers.remove(caller.getUniqueId());
+                        caller.refund();
+                        caller.sendMessage("You've been refunded, sending you back!");
+                        return true;
+                    }
+                } else if (args[0].equals("time")) {
+                    caller.sendPlayerTimeRemaining();
+                    return true;
+                } else {
+                    caller.sendMessage("Unknown arguments, try 'explore quit' or 'explore time'");
+                    return false;
+                }
+            } else {
+                p.sendMessage(ChatColor.RED
+                        + "You are already exploring! Complete the current task or type \"/explore quit\"");
+                return false;
+            }
         }
 
         // collectPayment
