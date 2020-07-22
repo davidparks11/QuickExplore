@@ -5,7 +5,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import java.util.HashMap;
 import java.util.UUID;
 import java.util.Iterator;
-import dev.ad585.spigot.quickexplore.Explorer;
+import dev.ad585.spigot.quickexplore.dataModels.Explorer;
 
 public class ExplorerStatusChecker implements Runnable {
 

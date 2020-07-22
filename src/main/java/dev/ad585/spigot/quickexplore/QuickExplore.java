@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.UUID;
 import java.util.logging.Logger;
 import dev.ad585.spigot.quickexplore.commands.QuickExploreCommandExecutor;
+import dev.ad585.spigot.quickexplore.dataModels.Explorer;
 import dev.ad585.spigot.quickexplore.listeners.EntityDeathListener;
 
 public class QuickExplore extends JavaPlugin {

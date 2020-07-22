@@ -1,6 +1,6 @@
 package dev.ad585.spigot.quickexplore.listeners;
 
-import dev.ad585.spigot.quickexplore.Explorer;
+import dev.ad585.spigot.quickexplore.dataModels.Explorer;
 import org.bukkit.event.Listener;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;

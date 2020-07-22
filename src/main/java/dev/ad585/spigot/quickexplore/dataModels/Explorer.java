@@ -1,4 +1,4 @@
-package dev.ad585.spigot.quickexplore;
+package dev.ad585.spigot.quickexplore.dataModels;
 
 import java.util.HashMap;
 import java.util.UUID;

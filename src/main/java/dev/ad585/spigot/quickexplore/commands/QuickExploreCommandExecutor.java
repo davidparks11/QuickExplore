@@ -3,7 +3,7 @@ package dev.ad585.spigot.quickexplore.commands;
 import dev.ad585.spigot.quickexplore.QuickExplore;
 import dev.ad585.spigot.quickexplore.runnables.ExplorerStatusChecker;
 import dev.ad585.spigot.quickexplore.util.LocationUtil;
-import dev.ad585.spigot.quickexplore.Explorer;
+import dev.ad585.spigot.quickexplore.dataModels.Explorer;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.Command;
