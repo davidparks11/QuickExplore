@@ -11,3 +11,16 @@ buildNumber.properties
 .mvn/wrapper/maven-wrapper.jar
 *.bat
 .factorypath
+#Eclipse .gitignore settings
+.settings/
+bin/
+tmp/
+.metadata
+.classpath
+.project
+*.tmp
+*.bak
+*.swp
+*~.nib
+local.properties
+.loadpath
