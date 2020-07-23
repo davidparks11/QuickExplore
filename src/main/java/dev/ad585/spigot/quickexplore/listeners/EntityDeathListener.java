@@ -22,8 +22,16 @@ public class EntityDeathListener implements Listener {
             Player p = event.getEntity().getKiller();
             // check if player is exploring
             if (explorers.containsKey(p.getUniqueId())) {
-                p.sendMessage("Congrats you've completed your task! Sending you home now!");
-                explorers.get(p.getUniqueId()).taskComplete();
+                Explorer e = explorers.get(p.getUniqueId());
+                if (e.getTarget() == event.getEntityType()) {
+                    if (!e.isOutOfTime()) {
+                        e.sendMessage("Congrats you've completed your task! Sending you home soon!");
+                        e.taskComplete();
+                    }
+                } else {
+                    e.sendMessage("Thats the wrong mob type! You need to defeat a "
+                            + e.getTarget().toString().toLowerCase() + " in order to recieve your reward!");
+                }
             }
         }
     }

@@ -4,12 +4,15 @@ import dev.ad585.spigot.quickexplore.QuickExplore;
 import dev.ad585.spigot.quickexplore.runnables.ExplorerStatusChecker;
 import dev.ad585.spigot.quickexplore.util.LocationUtil;
 import dev.ad585.spigot.quickexplore.dataModels.Explorer;
+import dev.ad585.spigot.quickexplore.dataModels.Quest;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import java.util.HashMap;
 import java.util.UUID;
 
@@ -55,7 +58,7 @@ public class QuickExploreCommandExecutor implements CommandExecutor {
                     if (caller.sendHome()) {
                         explorers.remove(caller.getUniqueId());
                         caller.refund();
-                        caller.sendMessage("You've been refunded, sending you back!");
+                        caller.messageRefund();
                         return true;
                     }
                 } else if (args[0].equals("time")) {
@@ -72,11 +75,11 @@ public class QuickExploreCommandExecutor implements CommandExecutor {
             }
         }
 
+        Quest q = new Quest(EntityType.CREEPER, 300, Material.DIAMOND, 1, Material.DIAMOND, 5);
         // collectPayment
-        Explorer e = new Explorer(p);
+        Explorer e = new Explorer(p, q);
         if (!e.collectPayment()) {
-            e.sendMessage("QuickExplore failed! You must pay " + e.getFeeAmount() + " " + e.getFeeCurrency()
-                    + " to go on a quest!");
+            e.messagePaymentFailure();
             return false;
         }
 

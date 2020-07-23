@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.UUID;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
@@ -14,27 +15,19 @@ import org.bukkit.inventory.ItemStack;
 public class Explorer {
 
     private Player player;
+    private Quest quest;
     private long callTime;
     private Location callLocation;
-    private int timeLimit;
-    private int rewardAmount;
-    private int feeAmount;
-    private Material rewardCurrency;
-    private Material feeCurrency;
     private boolean taskCompleted;
 
     /**
      * @param player player to store and pull values from
      */
-    public Explorer(Player player) {
+    public Explorer(Player player, Quest quest) {
         this.player = player;
+        this.quest = quest;
         callTime = System.currentTimeMillis();
         callLocation = player.getLocation().clone();
-        timeLimit = 30;
-        rewardAmount = 4;
-        feeAmount = 1;
-        rewardCurrency = Material.DIAMOND;
-        feeCurrency = Material.DIAMOND;
         taskCompleted = false;
     }
 
@@ -54,22 +47,6 @@ public class Explorer {
      */
     public boolean isOutOfTime() {
         return getTimeRemaining() <= 0;
-    }
-
-    /**
-     * Sends the player a message with the remaining minutes and seconds
-     */
-    public void sendPlayerTimeRemaining() {
-        player.sendMessage("You have " + getTimeRemaining() / 60 + " minutes and " + getTimeRemaining() % 60
-                + " seconds remaining.");
-    }
-
-    /**
-     * 
-     * @return the number of time left in seconds
-     */
-    public int getTimeRemaining() {
-        return (int) (callTime / 1000 + timeLimit - System.currentTimeMillis() / 1000);
     }
 
     /**
@@ -94,14 +71,14 @@ public class Explorer {
      * gives player diamonds of p.rewardAmount
      */
     public void rewardPlayer() {
-        giveExplorerItems(rewardCurrency, rewardAmount);
+        giveExplorerItems(quest.getRewardCurrency(), quest.getRewardAmount());
     }
 
     /**
      * Gives the player what they paid to explore
      */
     public void refund() {
-        giveExplorerItems(feeCurrency, feeAmount);
+        giveExplorerItems(quest.getFeeCurrency(), quest.getFeeAmount());
     }
 
     /**
@@ -125,9 +102,17 @@ public class Explorer {
      * @return false if the payment cannot be collected from player
      */
     public boolean collectPayment() {
-        ItemStack fee = new ItemStack(feeCurrency, feeAmount);
+        ItemStack fee = new ItemStack(quest.getFeeCurrency(), quest.getFeeAmount());
         HashMap<Integer, ItemStack> failedItems = player.getInventory().removeItem(fee);
         return failedItems.isEmpty();
+    }
+
+    /**
+     * @return the entity type that the explorer has to conquer to complete the
+     *         quest
+     */
+    public EntityType getTarget() {
+        return quest.getTarget();
     }
 
     /**
@@ -145,16 +130,37 @@ public class Explorer {
     }
 
     /**
-     * @return amount player has to pay to explore
+     * 
+     * @return the number of time left in seconds. Cannot be negative
      */
-    public int getFeeAmount() {
-        return feeAmount;
+    public int getTimeRemaining() {
+        int timeRemaining = (int) (callTime / 1000 + quest.getTimeLimit() - System.currentTimeMillis() / 1000);
+        if (timeRemaining < 0)
+            return 0;
+        return timeRemaining;
     }
 
     /**
-     * @return material type player has to pay to explore
+     * Tells player the remaining minutes and seconds
      */
-    public String getFeeCurrency() {
-        return feeCurrency.toString();
+    public void sendPlayerTimeRemaining() {
+        player.sendMessage("You have " + getTimeRemaining() / 60 + " minutes and " + getTimeRemaining() % 60
+                + " seconds remaining.");
+    }
+
+    /**
+     * Tells player how much and what they are being refunded
+     */
+    public void messageRefund() {
+        player.sendMessage(
+                "You've been refunded" + quest.getFeeAmount() + " " + quest.getFeeCurrency() + ". sending you back!");
+    }
+
+    /**
+     * Tells player they do not have the require amount of material to go on quest
+     */
+    public void messagePaymentFailure() {
+        player.sendMessage("QuickExplore failed! You must pay " + quest.getFeeAmount() + " " + quest.getFeeCurrency()
+                + " to go on a quest!");
     }
 }
