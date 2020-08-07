@@ -67,7 +67,7 @@ public final class LocationUtil {
     }
 
     public static boolean preLoadChunck(Location location) {
-        return location.getWorld().loadChunk((int) location.getX(), (int) location.getY(), true);
+        return location.getChunk().load(true);
     }
 
     /**

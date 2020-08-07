@@ -1,0 +1,23 @@
+# Aside from a few messages, no info will be sent
+inform-player: true
+# Distance params: set both to 0 to avoid generating new areas. Teleporting to random locations 
+# with many players for most machines will prove taxing and can cause lag. 
+# Maximum distance in x and y direction that a player can be spawned
+max-distance: 15000
+# Minimum distance in x and y direction that a player can be spawned
+min-distance: 800
+# All times are in seconds. There are 1200 seconds (or 20 minutes) in each day. Keep in mind that
+# some mobs are very hard to find without the cover of night time.
+# The basic layout is as follows:
+# - "<target type>, <timelimit>,  <reward currency>, <reward amount>[, <fee currency>, <fee amount>]"
+# The time limits and amounts should just be number.
+# Fee and Fee Currency can be omitted. In this case, the player will not be refunded as they will not
+# be charged.
+quests:
+  - "creeper,300,diamond,4,diamond,1"
+  - "witch,1200,emerald,4,diamond,2"
+  - "chicken,120,gold_ingot,1,oak_planks,1"
+  - "sheep,120,iron_ingot,1"
+# Will not refund after player has been exploring for this amount of time. If no refunds are desired,
+# set this value to 0.
+refund-time-limit: 30

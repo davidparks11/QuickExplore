@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.UUID;
 import java.util.Iterator;
 import dev.ad585.spigot.quickexplore.dataModels.Explorer;
+import net.md_5.bungee.api.ChatColor;
 
 public class ExplorerStatusChecker implements Runnable {
 
@@ -27,8 +28,8 @@ public class ExplorerStatusChecker implements Runnable {
         // self cancels task if no player remain in countdown map
         if (idExplorerMap.size() < 1) {
             if (!cancelSelf()) {
-                plugin.getServer().getLogger().severe(
-                        "Couldn't cancel QuickExplore task, but schedule anyways. Try reloading the plugin, or restarting the server.");
+                plugin.getServer().getLogger().severe(ChatColor.RED
+                        + "Couldn't cancel QuickExplore task, but schedule anyways. Try reloading the plugin, or restarting the server.");
             } else {
                 taskId = -1;
             }
@@ -40,10 +41,10 @@ public class ExplorerStatusChecker implements Runnable {
                     // on successful teleport
                     if (player.sendHome()) {
                         if (player.isTaskCompleted()) {
-                            player.sendMessage("You did it! Take this reward!");
+                            player.sendMessage(ChatColor.GOLD + "You did it! Take this reward!", false);
                             player.rewardPlayer();
                         } else {
-                            player.sendMessage("Sorry! You've run out of time. Going back!");
+                            player.sendMessage(ChatColor.YELLOW + "Sorry! You've run out of time. Going back!", true);
                         }
                         explorerIterator.remove();
                     }

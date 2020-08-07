@@ -7,6 +7,10 @@ import org.bukkit.Material;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.plugin.java.JavaPlugin;
+
+import dev.ad585.spigot.quickexplore.util.LocationUtil;
+import net.md_5.bungee.api.ChatColor;
 
 /**
  * This class encapsulates a player who calls the explore command. Any
@@ -14,21 +18,38 @@ import org.bukkit.inventory.ItemStack;
  */
 public class Explorer {
 
+    private static final String REFUND_TIME_LIMIT_PATH = "refund-time-limit";
+    private static final String INFORM_PLAYER_PATH = "inform-player";
+    private static final String MAX_DISTANCE_PATH = "max-distance";
+    private static final String MIN_DISTANCE_PATH = "min-distance";
     private Player player;
     private Quest quest;
     private long callTime;
     private Location callLocation;
     private boolean taskCompleted;
+    private int refundTime;
+    private boolean inform;
+    private int maxDistance;
+    private int minDistance;
 
     /**
      * @param player player to store and pull values from
      */
-    public Explorer(Player player, Quest quest) {
+    public Explorer(JavaPlugin plugin, Player player, Quest quest) {
         this.player = player;
         this.quest = quest;
         callTime = System.currentTimeMillis();
         callLocation = player.getLocation().clone();
         taskCompleted = false;
+
+        refundTime = plugin.getConfig().getInt(REFUND_TIME_LIMIT_PATH, 30);
+        inform = plugin.getConfig().getBoolean(INFORM_PLAYER_PATH, true);
+        maxDistance = plugin.getConfig().getInt(MAX_DISTANCE_PATH, 15000);
+        minDistance = plugin.getConfig().getInt(MIN_DISTANCE_PATH, 800);
+        if (maxDistance < 0)
+            maxDistance = 0;
+        if (minDistance < 0)
+            minDistance = 0;
     }
 
     /**
@@ -37,6 +58,45 @@ public class Explorer {
      */
     public UUID getUniqueId() {
         return player.getUniqueId();
+    }
+
+    /**
+     * 
+     * 
+     * @return false if send failed, true otherwise
+     */
+    public Boolean sendOnQuest() {
+        // send quest
+        sendMessage(quest.toString(), false);
+
+        // skip teleport logic if rand location would equal current location
+        if (maxDistance == 0 && minDistance == 0) {
+            return collectPayment();
+        }
+        // get new location and check it's safety
+        Location targetLocation = LocationUtil.getNextRandLocation(player.getLocation(), maxDistance, minDistance);
+        if (LocationUtil.isFloorDangerous(targetLocation) || !LocationUtil.inWorldBorder(targetLocation)) {
+            sendMessage(ChatColor.RED + "Sorry! That location would've been dangerous. Try again!", true);
+            return false;
+        }
+
+        // preload and teleport
+        if (!LocationUtil.preLoadChunck(targetLocation)) {
+            sendMessage(ChatColor.RED + "Couldn't preload location, try again!", true);
+            return false;
+        }
+
+        // collect payment
+        if (!collectPayment()) {
+            return false;
+        }
+
+        if (!player.teleport(targetLocation)) {
+            refund();
+            return false;
+        }
+
+        return true;
     }
 
     /**
@@ -54,8 +114,9 @@ public class Explorer {
      * 
      * @param message string to send to player
      */
-    public void sendMessage(String message) {
-        player.sendMessage(message);
+    public void sendMessage(String message, Boolean override) {
+        if (inform || override)
+            player.sendMessage(message);
     }
 
     /**
@@ -64,7 +125,9 @@ public class Explorer {
      * @return if the teleport was successful
      */
     public boolean sendHome() {
-        return player.teleport(callLocation);
+        if (maxDistance != 0 || minDistance != 0)
+            return player.teleport(callLocation);
+        return true;
     }
 
     /**
@@ -78,18 +141,21 @@ public class Explorer {
      * Gives the player what they paid to explore
      */
     public void refund() {
-        giveExplorerItems(quest.getFeeCurrency(), quest.getFeeAmount());
+        if (refundTime > getTimeElapsed() && quest.getFeeRequired()) {
+            messageRefund();
+            giveExplorerItems(quest.getFeeCurrency(), quest.getFeeAmount());
+        }
     }
 
     /**
      * Gives the player a specific number of material. Drops the material on the
      * ground near player if they cannot take it.
      * 
-     * @param m      material to give to player
-     * @param amount number of material to give to player
+     * @param material material to give to player
+     * @param amount   number of material to give to player
      */
-    private void giveExplorerItems(Material m, int amount) {
-        ItemStack itemStack = new ItemStack(m, amount);
+    private void giveExplorerItems(Material material, int amount) {
+        ItemStack itemStack = new ItemStack(material, amount);
         HashMap<Integer, ItemStack> failedItems = player.getInventory().addItem(itemStack);
         if (!failedItems.isEmpty()) {
             player.getWorld().dropItemNaturally(player.getLocation(), itemStack);
@@ -101,10 +167,16 @@ public class Explorer {
      * 
      * @return false if the payment cannot be collected from player
      */
-    public boolean collectPayment() {
-        ItemStack fee = new ItemStack(quest.getFeeCurrency(), quest.getFeeAmount());
-        HashMap<Integer, ItemStack> failedItems = player.getInventory().removeItem(fee);
-        return failedItems.isEmpty();
+    private boolean collectPayment() {
+        if (quest.getFeeRequired()) {
+            ItemStack fee = new ItemStack(quest.getFeeCurrency(), quest.getFeeAmount());
+            HashMap<Integer, ItemStack> failedItems = player.getInventory().removeItem(fee);
+            if (!failedItems.isEmpty()) {
+                messagePaymentFailure();
+                return false;
+            }
+        }
+        return true;
     }
 
     /**
@@ -141,26 +213,52 @@ public class Explorer {
     }
 
     /**
+     * 
+     * @return time explorer has explored in seconds
+     */
+    private int getTimeElapsed() {
+        return (int) (System.currentTimeMillis() / 1000 - callTime / 1000);
+    }
+
+    /**
      * Tells player the remaining minutes and seconds
      */
     public void sendPlayerTimeRemaining() {
-        player.sendMessage("You have " + getTimeRemaining() / 60 + " minutes and " + getTimeRemaining() % 60
-                + " seconds remaining.");
+        int time = getTimeRemaining();
+        int questTime = quest.getTimeLimit();
+        ChatColor color = ChatColor.GREEN;
+        if (time < questTime / 3) {
+            color = ChatColor.RED;
+        } else if (time < questTime / 2) {
+            color = ChatColor.YELLOW;
+        }
+        sendMessage(color + "You have " + secondToMinuteSecond(getTimeRemaining()) + " seconds remaining.", true);
+    }
+
+    /**
+     * given a time in seconds, this returns a string "NUM_MINUTES minutes and
+     * NUM_SECONDS seconds"
+     * 
+     * @param seconds
+     * @return string containing minutes and seconds from param
+     */
+    private String secondToMinuteSecond(int seconds) {
+        return seconds / 60 + " minutes and " + seconds % 60 + " seconds";
     }
 
     /**
      * Tells player how much and what they are being refunded
      */
-    public void messageRefund() {
-        player.sendMessage(
-                "You've been refunded" + quest.getFeeAmount() + " " + quest.getFeeCurrency() + ". sending you back!");
+    private void messageRefund() {
+        sendMessage("You've been refunded " + ChatColor.GREEN + quest.getFeeAmount() + " " + quest.getFeeCurrency()
+                + ". sending you back!", true);
     }
 
     /**
      * Tells player they do not have the require amount of material to go on quest
      */
-    public void messagePaymentFailure() {
-        player.sendMessage("QuickExplore failed! You must pay " + quest.getFeeAmount() + " " + quest.getFeeCurrency()
-                + " to go on a quest!");
+    private void messagePaymentFailure() {
+        sendMessage(ChatColor.YELLOW + "Failed to begin quest! You must pay " + quest.getFeeAmount() + " "
+                + quest.getFeeCurrency() + " to go on a quest!", true);
     }
 }
