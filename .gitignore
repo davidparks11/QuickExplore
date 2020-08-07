@@ -26,3 +26,5 @@ local.properties
 .loadpath
 #vs code
 .vscode
+#Docker
+Dockerfile
