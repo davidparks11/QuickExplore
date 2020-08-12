@@ -5,6 +5,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
+
+import dev.ad585.spigot.quickexplore.commands.QEListCommandExecutor;
+import dev.ad585.spigot.quickexplore.commands.QEQuitCommandExecutor;
+import dev.ad585.spigot.quickexplore.commands.QETimeCommandExecutor;
 import dev.ad585.spigot.quickexplore.commands.QuickExploreCommandExecutor;
 import dev.ad585.spigot.quickexplore.dataModels.Explorer;
 import dev.ad585.spigot.quickexplore.dataModels.Quest;
@@ -23,6 +27,9 @@ public class QuickExplore extends JavaPlugin {
         if (loadConfig()) {
             getLogger().info(ChatColor.GREEN + "" + quests.length + " quests found!");
             new QuickExploreCommandExecutor(this, quests, idExplorerMap);
+            new QEListCommandExecutor(this, quests);
+            new QEQuitCommandExecutor(this, idExplorerMap);
+            new QETimeCommandExecutor(this, idExplorerMap);
             getServer().getPluginManager().registerEvents(new EntityDeathListener(idExplorerMap), this);
             getLogger().info("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
             getLogger().info("Quick Explore version enabled!");

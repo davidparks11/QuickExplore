@@ -16,12 +16,10 @@ import java.util.UUID;
 
 public class QuickExploreCommandExecutor implements CommandExecutor {
 
+    private static final String PERMISSION = "quickexplore.use";
     private static final int CHECK_INTERVAL = 10;
     private static final int TICKS_PER_SECOND = 20;
-    private static final String[] USAGE = new String[] { "usage: qe <arg>", "arg options:",
-            "<number> - chooses a quest to start", "list - lists available quests",
-            "quit - returns explorer home, refunds payment if possible (while exploring)",
-            "time - returns time remaining to complete current quest (while exploring)" };
+    private static final String USAGE = "usage: qe <number>";
 
     private QuickExplore plugin;
     private Quest[] quests;
@@ -48,87 +46,49 @@ public class QuickExploreCommandExecutor implements CommandExecutor {
         Player player = (Player) sender;
 
         // check permission
-        if (!player.hasPermission("explore.use")) {
+        if (!player.hasPermission(PERMISSION)) {
             player.sendMessage(ChatColor.RED + "You do not have the permission to execute this command!");
             return false;
         }
 
-        if (args.length == 1) {
-            String arg = args[0];
-            Explorer currentExplorer = explorers.get(player.getUniqueId());
-            // explorers or player can call
-            if (arg.equals("list")) {
-                listQuests(player);
-                return true;
-            }
-            // must be exploring to call these subcommands
-            if (currentExplorer != null) {
-                if (arg.equals("quit")) {
-                    return cancelQuest(currentExplorer);
-                } else if (arg.equals("time")) {
-                    currentExplorer.sendPlayerTimeRemaining();
-                    return true;
-                }
-            }
+        if (args.length != 1) {
+            player.sendMessage(new String[] {ChatColor.YELLOW + "Invalid amount of args", USAGE});
+            return false;
+        }
 
-            // start new quest
-            try {
-                int questIndex = (int) Integer.valueOf(arg) - 1;
+        // is player is exploring, do not send on quest
+        if (explorers.containsKey(player.getUniqueId())) {
+            player.sendMessage(
+                    ChatColor.RED + "You are already exploring! Complete the current task or type \"/explore quit\"");
+            return false;
+        }
 
-                // is player is exploring, do not send on quest
-                if (currentExplorer != null) {
-                    player.sendMessage(ChatColor.RED
-                            + "You are already exploring! Complete the current task or type \"/explore quit\"");
-                    return false;
-                }
-
-                Explorer explorer = new Explorer(plugin, player, quests[questIndex]);
-                if (!explorer.sendOnQuest()) {
-                    return false;
-                }
-
-                explorers.put(explorer.getUniqueId(), explorer);
-
-                // start quest checker if it's not currently running
-                scheduleExplorerStatusChecker(player.getServer().getScheduler());
-                return true;
-            } catch (ArrayIndexOutOfBoundsException e) {
-                player.sendMessage(ChatColor.YELLOW
-                        + "The number you entered exceeds the number of available quests! There are only "
-                        + quests.length + " quests.");
-                return false;
-            } catch (NumberFormatException e) {
-                // player entered no subcommands or numbers, invalid input
-                player.sendMessage(
-                        ChatColor.YELLOW + "Invalid subcommand. Certain subcommands can only be used while exploring");
-                player.sendMessage(USAGE);
+        // start new quest
+        try {
+            int questIndex = (int) Integer.valueOf(args[0]) - 1;
+            Explorer explorer = new Explorer(plugin, player, quests[questIndex]);
+            if (!explorer.sendOnQuest()) {
                 return false;
             }
-        } else
 
-        {
-            player.sendMessage(ChatColor.YELLOW + "Invalid amount of args");
+            explorers.put(explorer.getUniqueId(), explorer);
+
+            // start quest checker if it's not currently running
+            scheduleExplorerStatusChecker(player.getServer().getScheduler());
+            return true;
+        } catch (ArrayIndexOutOfBoundsException e) {
+            player.sendMessage(
+                    ChatColor.YELLOW + "The number you entered exceeds the number of available quests! There are only "
+                            + quests.length + " quests.");
+            return false;
+        } catch (NumberFormatException e) {
+            // player entered no subcommands or numbers, invalid input
+            player.sendMessage(
+                    ChatColor.YELLOW + "Invalid subcommand. Certain subcommands can only be used while exploring");
             player.sendMessage(USAGE);
             return false;
         }
-    }
 
-    /**
-     * 
-     * @param player player to send message to
-     */
-    public void listQuests(Player player) {
-        for (int i = 0; i < quests.length; i++)
-            player.sendMessage((i + 1) + ": " + quests[i].toString());
-    }
-
-    private Boolean cancelQuest(Explorer explorer) {
-        if (explorer.sendHome()) {
-            explorers.remove(explorer.getUniqueId());
-            explorer.refund();
-            return true;
-        }
-        return false;
     }
 
     private void scheduleExplorerStatusChecker(BukkitScheduler scheduler) {

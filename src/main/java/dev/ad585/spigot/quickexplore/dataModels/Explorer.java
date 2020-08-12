@@ -251,7 +251,7 @@ public class Explorer {
      */
     private void messageRefund() {
         sendMessage("You've been refunded " + ChatColor.GREEN + quest.getFeeAmount() + " " + quest.getFeeCurrency()
-                + ". sending you back!", true);
+                + ChatColor.WHITE + ". sending you back!", true);
     }
 
     /**
