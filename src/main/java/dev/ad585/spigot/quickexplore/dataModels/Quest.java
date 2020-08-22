@@ -2,7 +2,6 @@ package dev.ad585.spigot.quickexplore.dataModels;
 
 import org.bukkit.Material;
 import org.bukkit.entity.EntityType;
-
 import net.md_5.bungee.api.ChatColor;
 
 public class Quest {
@@ -10,6 +9,8 @@ public class Quest {
      *
      */
     private static final boolean USE_LEGACY = false;
+    private static final int MINIMUM_TIME_LIMIT = 30;
+    private static final int MINIMUM_ITEM_AMOUNT = 1;
     private EntityType target;
     private int timeLimit;
     private boolean feeRequired;
@@ -66,6 +67,10 @@ public class Quest {
             }
 
             timeLimit = (int) Integer.valueOf(questInfo[1]);
+            if (rewardAmount < MINIMUM_TIME_LIMIT) {
+                throw new IllegalArgumentException(
+                        "Invalid reward amount: " + rewardAmount + ". Reward amount must be a positive integer");
+            }
 
             rewardCurrency = Material.matchMaterial(questInfo[2].toUpperCase(), USE_LEGACY);
             if (rewardCurrency == null) {
@@ -73,6 +78,10 @@ public class Quest {
                         + " in list, check to make sure your material exists");
             }
             rewardAmount = (int) Integer.valueOf(questInfo[3]);
+            if (rewardAmount < MINIMUM_ITEM_AMOUNT) {
+                throw new IllegalArgumentException(
+                        "Invalid reward amount: " + rewardAmount + ". Reward amount must be a positive integer");
+            }
 
             if (feeRequired) {
                 feeCurrency = Material.matchMaterial(questInfo[4].toUpperCase(), USE_LEGACY);
@@ -81,6 +90,10 @@ public class Quest {
                             + " in list, check to make sure your material exists");
                 }
                 feeAmount = (int) Integer.valueOf(questInfo[5]);
+                if (feeAmount < MINIMUM_ITEM_AMOUNT) {
+                    throw new IllegalArgumentException(
+                            "Invalid fee amount: " + feeAmount + ". Fee amount must be a positive integer");
+                }
             }
 
         } catch (NumberFormatException e) {
